@@ -1,15 +1,10 @@
-import * as restify from 'restify'
+import {Server} from './server/server'
 
-const server = restify.createServer({
-  name: 'teste-api',
-  version: '1.0.0'
-})
-
-server.get('/teste', (req, resp, next) => {
-  resp.json({message: 'Alou'})
-  return next()
-})
-
-server.listen(3000, ()=>{
-  console.log("Tá rodando")
+const server = new Server()
+server.bootstrap().then(server=>{
+  console.log("Tá ouvindo")
+}).catch(error=>{
+  console.log("Deu ruim no servidor")
+  console.error(error)
+  process.exit(1)
 })
