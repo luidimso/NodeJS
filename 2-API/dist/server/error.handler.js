@@ -12,6 +12,9 @@ exports.handleError = (req, resp, err, done) => {
                 err.statusCode = 400;
             }
             break;
+        case 'ValidationError':
+            err.statusCode = 400;
+            break;
     }
     done();
 };

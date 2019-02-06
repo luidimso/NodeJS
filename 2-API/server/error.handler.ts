@@ -11,7 +11,11 @@ export const handleError = (req: restify.Request, resp: restify.Response, err, d
       if(err.code === 11000){
         err.statusCode = 400
       }
-    break  
+    break
+
+    case 'ValidationError':
+        err.statusCode = 400
+    break
   }
   done()
 }
