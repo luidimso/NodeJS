@@ -2,7 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const restify = require("restify");
 const environment_1 = require("../common/environment");
+const mongoose = require("mongoose");
 class Server {
+    initializeDb() {
+        mongoose.Promise = global.Promise;
+        return mongoose.connect(environment_1.environment.db.url, {
+            useMongoClient: true
+        });
+    }
     initRoutes(routers) {
         return new Promise((resolve, reject) => {
             try {
@@ -24,7 +31,7 @@ class Server {
         });
     }
     bootstrap(routers = []) {
-        return this.initRoutes(routers).then(() => this);
+        return this.initializeDb().then(() => this.initRoutes(routers).then(() => this));
     }
 }
 exports.Server = Server;
