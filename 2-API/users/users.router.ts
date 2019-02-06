@@ -1,6 +1,7 @@
 import {Router} from '../common/router'
 import * as restify from 'restify'
 import {User} from './users.model'
+import {NotFoundError} from 'restify-errors'
 
 class UsersRouter extends Router {
   applyRoutes(application:  restify.Server){
@@ -8,7 +9,7 @@ class UsersRouter extends Router {
       User.find().then(users=>{
         resp.json(users)
         return next()
-      })
+      }).catch(next)
     })
 
 
@@ -21,7 +22,7 @@ class UsersRouter extends Router {
 
         resp.send(404)
         return next()
-      })
+      }).catch(next)
     })
 
 
@@ -32,7 +33,7 @@ class UsersRouter extends Router {
         user.password = undefined;
         resp.json(user)
         return next()
-      })
+      }).catch(next)
     })
 
 
@@ -42,12 +43,12 @@ class UsersRouter extends Router {
         if(result.n){
           return User.findById(req.params.id)
         }else{
-          resp.send(404)
+          throw new NotFoundError('Documento não encontrado')
         }
       }).then(user=>{
         resp.json(user)
         return next()
-      })
+      }).catch(next)
     })
 
 
@@ -61,7 +62,7 @@ class UsersRouter extends Router {
           resp.send(404)
           return next()
         }
-      })
+      }).catch(next)
     })
 
 
@@ -70,10 +71,10 @@ class UsersRouter extends Router {
         if(cmdResult.result.n){
           resp.send(204)
         }else{
-          resp.send(404)
+          throw new NotFoundError('Documento não encontrado')
         }
         return next()
-      })
+      }).catch(next)
     })
   }
 }
