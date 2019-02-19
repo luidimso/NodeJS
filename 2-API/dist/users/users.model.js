@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        select: false,
+        select: true,
         required: true
     },
     gender: {
@@ -24,4 +24,15 @@ const userSchema = new mongoose.Schema({
         enum: ['M', 'F']
     }
 });
+userSchema.statics.findByEmail = function (email, projection) {
+    return this.findOne({ email }, projection);
+};
+userSchema.methods.matches = function (password) {
+    if (password == this.password) {
+        return true;
+    }
+    else {
+        return false;
+    }
+};
 exports.User = mongoose.model('User', userSchema);

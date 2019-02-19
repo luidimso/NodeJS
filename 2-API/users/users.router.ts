@@ -1,81 +1,33 @@
-import {Router} from '../common/router'
 import * as restify from 'restify'
 import {User} from './users.model'
 import {NotFoundError} from 'restify-errors'
+import {authenticate} from '../security/auth.handler'
+import {ModelRouter} from '../common/model-router'
 
-class UsersRouter extends Router {
+class UsersRouter extends ModelRouter<User> {
+  constructor(){
+    super(User)
+    this.on('beforeRender', document=>{
+      document.password = undefined
+    })
+  }
+
+  findByEmail = (req, resp, next)=>{
+    if(req.query.email){
+      User.findByEmail(req.query.email).then(user => user ? [user] : []).then(this.renderAll(resp, next)).catch(next)
+    }else{
+      next()
+    }
+  }
+
   applyRoutes(application:  restify.Server){
-    application.get('/users', (req, resp, next)=>{ //Selecionar todos
-      User.find().then(users=>{
-        resp.json(users)
-        return next()
-      }).catch(next)
-    })
-
-
-    application.get('/users/:id', (req, resp, next)=>{ //Selecionar por filtro
-      User.findById(req.params.id).then(user=>{
-        if(user){
-          resp.json(user)
-          return next()
-        }
-
-        resp.send(404)
-        return next()
-      }).catch(next)
-    })
-
-
-    application.post('/users', (req, resp, next)=>{ //Inserir
-      let user = new User(req.body)
-
-      user.save().then(user=>{
-        user.password = undefined;
-        resp.json(user)
-        return next()
-      }).catch(next)
-    })
-
-
-    application.put('/users/:id', (req, resp, next)=>{
-      const options = {overwrite: true}
-      User.update({_id:req.params.id}, req.body, options).exec().then(result=>{ //Atualização total
-        if(result.n){
-          return User.findById(req.params.id)
-        }else{
-          throw new NotFoundError('Documento não encontrado')
-        }
-      }).then(user=>{
-        resp.json(user)
-        return next()
-      }).catch(next)
-    })
-
-
-    application.patch('/users/:id', (req, resp, next)=>{
-      const options = {new: true}
-      User.findByIdAndUpdate(req.params.id, req.body, options).then(user=>{ //Atualização parcial
-        if(user){
-          resp.json(user)
-          return next()
-        }else{
-          resp.send(404)
-          return next()
-        }
-      }).catch(next)
-    })
-
-
-    application.del('/users/:id', (req, resp, next)=>{
-      User.remove({_id: req.params.id}).exec().then((cmdResult: any)=>{ //Apagar
-        if(cmdResult.result.n){
-          resp.send(204)
-        }else{
-          throw new NotFoundError('Documento não encontrado')
-        }
-        return next()
-      }).catch(next)
-    })
+    application.get('/users', this.findAll)
+    application.get('/users/:id', [this.validateId, this.findById])
+    application.post('/users', this.save)
+    application.put('/users/:id', [this.validateId, this.replace])
+    application.patch('/users/:id', [this.validateId, this.update])
+    application.del('/users/:id', [this.validateId, this.delete])
+    application.post('/users/authenticate', authenticate)
   }
 }
 

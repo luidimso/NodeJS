@@ -1,9 +1,16 @@
 import * as mongoose from 'mongoose'
+import * as bcrypt from 'bcrypt'
+import {environment} from '../common/environment'
 
 export interface User extends mongoose.Document{
   name: string,
   email: string,
-  password: string
+  password: string,
+  matches(password: string): boolean
+}
+
+export interface UserModel extends mongoose.Model<User>{
+  findByEmail(email: string, projection?: string): Promise<User>
 }
 
 const userSchema = new mongoose.Schema({
@@ -20,7 +27,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    select: false,
+    select: true,
     required: true
   },
   gender: {
@@ -30,4 +37,17 @@ const userSchema = new mongoose.Schema({
   }
 })
 
-export const User = mongoose.model<User>('User', userSchema)
+userSchema.statics.findByEmail = function(email: string, projection: string){
+  return this.findOne({email}, projection)
+}
+
+userSchema.methods.matches = function(password: string): boolean {
+  if(password == this.password){
+    return true
+  }
+  else{
+    return false
+  }
+}
+
+export const User = mongoose.model<User, UserModel>('User', userSchema)
