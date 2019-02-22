@@ -70,12 +70,7 @@ userSchema.statics.findByEmail = function(email: string, projection: string){
 }
 
 userSchema.methods.matches = function(password: string): boolean {
-  if(password == this.password){
-    return true
-  }
-  else{
-    return false
-  }
+  return bcrypt.compareSync(password, this.password)
 }
 
 export const User = mongoose.model<User, UserModel>('User', userSchema)
